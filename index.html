@@ -388,7 +388,7 @@
     <script src="js/main.js"></script>
 
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" type="text/javascript"></script>
-    <script type="text/javascript" src="js/echarts.min.js" ></script>
+    <script type="text/javascript" src="js/echarts.js" ></script>
     <script type="text/javascript">
     $(document).ready(function() {
         // navigation click actions 
@@ -414,16 +414,12 @@
             },
             tooltip: {},
             legend: {
-                data:['数量']
-            },
-            xAxis: {
-                data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
+                data:[]
             },
             yAxis: {},
             series: [{
                 name: '销量',
-                type: 'bar',
-                data: [5, 20, 36, 10, 10, 20]
+                type: 'pie'
             }]
         };
         $.ajax({
@@ -432,7 +428,32 @@
         	async:true,
         	dataType : 'json',
         	success:function(result){
-        		myChart.setOption(option);
+        		var data;
+        		if(result.state == 0){
+        			data = result.data;
+        			data = eval('(' +data + ')');
+        			option.legend.data = data;
+        			option.series.data = data;
+        			myChart.on("click",function(param){
+        				if(param.value>0){
+        					var status = 0;
+        					if(param.name == '待设计'){
+        						status = 0;
+        					}else if(param.name == '待审核'){
+        						status = 1;
+        					}else if(param.name == '待审查'){
+        						status = 2;
+        					}else{
+        						status = 3;
+        					}
+        					view(status);
+        				}
+        			})
+        			myChart.setOption(option);
+        		}else{
+        			alert(result.message);
+        		}
+        		
         	}
         });
     });
@@ -458,8 +479,26 @@
     function modify(){
     	
     }
-    function view(){
-    	
+    function view(status){
+    	$.ajax({
+    		type:"get",
+    		url:"Project/searchProjectsByStatus.do",
+    		async:true,
+    		data:{
+    			status:status
+    		},
+    		dataType:'json',
+    		success:function(result){
+    			if(result.status == 0){
+    				
+    			}else{
+    				alert(result.message);
+    			}
+    		},
+    		error:function(){
+    			alert('发生了未知错误，请检查网络后重新尝试');
+    		}
+    	});
     }
     </script>
 </body>
